@@ -8,8 +8,6 @@ Coded with love with emacs.
 
 # next todos
 
-- put mux into toplevel
-- implement branchs
 
 # Instructions to implement
 
@@ -21,23 +19,23 @@ Coded with love with emacs.
 - [x] LDI
 - [X] ANDI
 - [x] SUBI
-- [ ] MOV
-- [ ] NOP
+- [x] MOV
+- [x] NOP
 - [X] LSL
 - [X] CP
 - [ ] ROL
 - [ ] ADC
-- [ ] EOR
-- [ ] CPI
+- [x] EOR
+- [x] CPI
 - [ ] ORI
-- [ ] LD
-- [ ] ST
+- [x] LD
+- [x] ST
 - [ ] COM
 - [ ] ASR 
 - [ ] LSR
-- [ ] RJMP
-- [ ] BRBS
-- [ ] BRBC
+- [x] RJMP
+- [x] BRBS
+- [x] BRBC
 - [ ] SEC
 - [ ] CLC
 - [ ] PUSH
