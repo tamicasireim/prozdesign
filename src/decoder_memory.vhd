@@ -24,7 +24,6 @@ begin
   begin
     w_e_memory <= "0000";
     addr_memory <= "0000000000";
-    memory_output_selector <= "0000";
 
     if unsigned(index_z) >= unsigned(addr_first_memory)
       and unsigned(index_z) <= unsigned(addr_last_memory) then
