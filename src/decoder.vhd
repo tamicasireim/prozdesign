@@ -6,7 +6,7 @@
 -- Author     : Burkart Voss  <bvoss@Troubadix>
 -- Company    : 
 -- Created    : 2015-06-23
--- Last update: 2016-11-27
+-- Last update: 2016-11-28
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -150,6 +150,11 @@ begin  -- Behavioral
             OPCODE            <= op_sub;
             w_e_regfile       <= '1';
             w_e_SREG          <= "00111111";
+            alu_sel_immediate <= '1';
+          -- CPI
+          when "0011" =>
+            addr_opa          <= '1' & Instr(7 downto 4);
+            OPCODE            <= op_sub;
             alu_sel_immediate <= '1';
           -- ORI
           when "0110" =>
