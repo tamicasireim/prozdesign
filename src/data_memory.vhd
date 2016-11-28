@@ -34,7 +34,7 @@ entity data_memory is
        -- Memory
        w_e_memory : in  std_logic_vector(3 downto 0);
        data_in    : in  std_logic_vector(7 downto 0);
-       addr       : in std_logic_vector (9 downto 0);
+       addr       : in std_logic_vector (9 downto 0)
 
        );
 end data_memory;

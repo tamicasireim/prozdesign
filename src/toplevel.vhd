@@ -51,7 +51,7 @@ entity toplevel is
     btnEnter : in std_logic;
 
     -- PINC & PINB (switchs)
-    switches : std_logic_vector(15 downto 0);
+    sw : std_logic_vector(15 downto 0);
     -- PORT C & PORT B (led)
     led      : std_logic_vector(15 downto 0)
     );
@@ -106,6 +106,19 @@ architecture Behavioral of toplevel is
                                         -- alu_sel_immediate multiplexer
   signal input_data_reg : std_logic_vector(7 downto 0);  -- output of input reg
                                                          -- multiplexer
+
+  -- input ports
+  signal pind : std_logic_vector(7 downto 0);
+  signal output_pind : std_logic_vector(7 downto 0);
+  signal pinc : std_logic_vector(7 downto 0);
+  signal output_pinc : std_logic_vector(7 downto 0);
+  signal pinb : std_logic_vector(7 downto 0);
+  signal output_pinb : std_logic_vector(7 downto 0);
+
+  -- output ports
+  signal portc : std_logic_vector(7 downto 0);
+  signal portb : std_logic_vector(7 downto 0);
+
   -----------------------------------------------------------------------------
   -- Component declarations
   -----------------------------------------------------------------------------
@@ -142,6 +155,18 @@ architecture Behavioral of toplevel is
       memory_output_selector : out std_logic_vector (3 downto 0);
       addr_memory            : out std_logic_vector(9 downto 0));
   end component decoder_memory;
+
+  component ports is
+    generic (
+      read_only : std_logic;
+      id_port   : std_logic_vector(3 downto 0));
+    port (
+      clk        : in  std_logic;
+      reset      : in  std_logic;
+      data_out   : out std_logic_vector (7 downto 0);
+      w_e_memory : in  std_logic_vector(3 downto 0);
+      data_in    : in  std_logic_vector(7 downto 0));
+  end component ports;
 
   component decoder is
     port (
@@ -257,20 +282,100 @@ begin
       addr       => addr_memory,
       data_out   => memory_data_out);
 
+  -- instances of port
+  inst_pind : ports
+    generic map (
+      read_only => '1',
+      id_port   => id_pind)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => output_pind,
+      w_e_memory => w_e_memory,
+      data_in    => pind);
+
+  inst_pinc : ports
+    generic map (
+      read_only => '1',
+      id_port   => id_pinc)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => output_pinc,
+      w_e_memory => w_e_memory,
+      data_in    => pinc);
+
+  inst_pinb : ports
+    generic map (
+      read_only => '1',
+      id_port   => id_pinb)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => output_pinb,
+      w_e_memory => w_e_memory,
+      data_in    => pinb);
+
+  inst_portc : ports
+    generic map (
+      read_only => '0',
+      id_port   => id_portc)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => portc,
+      w_e_memory => w_e_memory,
+      data_in    => data_opa);
+
+  inst_portb : ports
+    generic map (
+      read_only => '0',
+      id_port   => id_portb)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => portb,
+      w_e_memory => w_e_memory,
+      data_in    => data_opa);
+
+  -- variable from instruction
   PM_Data <= Instr(11 downto 8)&Instr(3 downto 0);
 
+  -- port in definitions
+  pind <= "000" & btnR & btnU & btnD & btnL & btnEnter;
+  pinc <= sw(15 downto 8);
+  pinb <= sw(7 downto 0);
+  -- port out definitions
+  portc <= led(15 downto 8);
+  portb <= led(7 downto 0);
+
+
+  -- ALU data OPB multiplexor
   input_alu_opb <= data_opb when alu_sel_immediate = '0'
                    else PM_Data;
 
-  select input_data_reg with regfile_datain_selector <=
-    PM_Data       when regfile_data_in_instruction,
-    data_res      when regfile_data_in_alu,
-    data_opb      when regfile_data_in_datab,
-    memory_output when regfile_data_in_memory;
+  -- regfile datain multiplexor
+  regfile_datain_mux : process (regfile_datain_selector)
+  begin
+    case regfile_datain_selector is
+      when regfile_data_in_instruction =>
+        input_data_reg <= PM_Data;
+      when regfile_data_in_alu =>
+        input_data_reg <= data_res;
+      when regfile_data_in_datab =>
+        input_data_reg <= data_opb;
+      when regfile_data_in_memory =>
+        input_data_reg <= memory_output;
+      when others =>
+        input_data_reg <= "00000000";
+    end case;
+    end process regfile_datain_mux;
 
+  -- memory output multiplexor
   memory_output <= memory_data_out when memory_output_selector = id_memory
                    else memory_data_out;
 
+  -- SREG
   sreg_process : process (clk)
   begin
     if clk'event and clk = '1' then
@@ -282,6 +387,5 @@ begin
     end if;
   end process sreg_process;
 
-  Status   <= status_alu;
-  w_e_SREG <= w_e_SREG_dec;
+
 end Behavioral;
