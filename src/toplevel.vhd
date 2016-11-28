@@ -262,10 +262,11 @@ begin
   input_alu_opb <= data_opb when alu_sel_immediate = '0'
                    else PM_Data;
 
-  input_data_reg <= PM_Data when regfile_datain_selector = regfile_data_in_instruction
-                    else data_res      when regfile_datain_selector = regfile_data_in_alu
-                    else data_opb      when regfile_datain_selector = regfile_data_in_datab
-                    else memory_output when regfile_datain_selector = regfile_data_in_memory;
+  select input_data_reg with regfile_datain_selector <=
+    PM_Data       when regfile_data_in_instruction,
+    data_res      when regfile_data_in_alu,
+    data_opb      when regfile_data_in_datab,
+    memory_output when regfile_data_in_memory;
 
   memory_output <= memory_data_out when memory_output_selector = id_memory
                    else memory_data_out;
