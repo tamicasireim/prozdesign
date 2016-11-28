@@ -48,12 +48,11 @@ entity toplevel is
     btnU     : in std_logic;
     btnD     : in std_logic;
     btnL     : in std_logic;
-    btnEnter : in std_logic;
 
     -- PINC & PINB (switchs)
-    sw : std_logic_vector(15 downto 0);
+    sw : in std_logic_vector(15 downto 0);
     -- PORT C & PORT B (led)
-    led      : std_logic_vector(15 downto 0)
+    led      : out std_logic_vector(15 downto 0)
     );
 
 end toplevel;
@@ -283,6 +282,17 @@ begin
       data_out   => memory_data_out);
 
   -- instances of port
+  inst_pinc : ports
+    generic map (
+      read_only => '1',
+      id_port   => id_pinc)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => output_pinc,
+      w_e_memory => w_e_memory,
+      data_in    => pinc);
+
   inst_pind : ports
     generic map (
       read_only => '1',
@@ -294,16 +304,6 @@ begin
       w_e_memory => w_e_memory,
       data_in    => pind);
 
-  inst_pinc : ports
-    generic map (
-      read_only => '1',
-      id_port   => id_pinc)
-    port map (
-      clk        => clk,
-      reset      => reset,
-      data_out   => output_pinc,
-      w_e_memory => w_e_memory,
-      data_in    => pinc);
 
   inst_pinb : ports
     generic map (
@@ -342,12 +342,12 @@ begin
   PM_Data <= Instr(11 downto 8)&Instr(3 downto 0);
 
   -- port in definitions
-  pind <= "000" & btnR & btnU & btnD & btnL & btnEnter;
+  pind <= "000" & btnR & btnU & btnD & btnL & "0";
   pinc <= sw(15 downto 8);
   pinb <= sw(7 downto 0);
   -- port out definitions
-  portc <= led(15 downto 8);
-  portb <= led(7 downto 0);
+  led(15 downto 8) <= portc;
+  led(7 downto 0) <= portb;
 
 
   -- ALU data OPB multiplexor
@@ -355,7 +355,8 @@ begin
                    else PM_Data;
 
   -- regfile datain multiplexor
-  regfile_datain_mux : process (regfile_datain_selector)
+  regfile_datain_mux : process (regfile_datain_selector, PM_Data,
+                                data_res, data_opb, memory_output)
   begin
     case regfile_datain_selector is
       when regfile_data_in_instruction =>
@@ -369,11 +370,30 @@ begin
       when others =>
         input_data_reg <= "00000000";
     end case;
-    end process regfile_datain_mux;
+  end process regfile_datain_mux;
 
   -- memory output multiplexor
-  memory_output <= memory_data_out when memory_output_selector = id_memory
-                   else memory_data_out;
+  memory_output_mux : process (memory_output_selector, memory_data_out,
+                                portc, portb,
+                                output_pind, output_pinc, output_pinb)
+  begin
+    case memory_output_selector is
+      when id_memory =>
+        memory_output <= memory_data_out;
+      when id_pind =>
+        memory_output <= output_pind;
+      when id_pinc =>
+        memory_output <= output_pinc;
+      when id_pinb =>
+        memory_output <= output_pinb;
+      when id_portc =>
+        memory_output <= portc;
+      when id_portb =>
+        memory_output <= portb;
+      when others =>
+        memory_output <= "00000000";
+    end case;
+  end process memory_output_mux;
 
   -- SREG
   sreg_process : process (clk)

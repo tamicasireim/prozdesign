@@ -6,7 +6,7 @@
 -- Author     : Burkart Voss  <bvoss@Troubadix>
 -- Company    : 
 -- Created    : 2015-06-23
--- Last update: 2015-06-23
+-- Last update: 2016-11-28
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -31,20 +31,28 @@ end toplevel_tb;
 -------------------------------------------------------------------------------
 
 architecture behaviour of toplevel_tb is
-
-  component toplevel
+  component toplevel is
     port (
-      reset    : in  STD_LOGIC;
-      clk      : in  STD_LOGIC;
-      w_e_SREG : out std_logic_vector(7 downto 0);
-      Status   : out STD_LOGIC_VECTOR (7 downto 0));
-  end component;
+      reset    : in  std_logic;
+      clk      : in  std_logic;
+      btnR     : in  std_logic;
+      btnU     : in  std_logic;
+      btnD     : in  std_logic;
+      btnL     : in  std_logic;
+      btnEnter : in  std_logic;
+      sw       : in std_logic_vector(15 downto 0);
+      led      : out std_logic_vector(15 downto 0));
+  end component toplevel;
 
   -- component ports
   signal reset    : STD_LOGIC;
   signal clk      : STD_LOGIC:='0';
-  signal w_e_SREG : std_logic_vector(7 downto 0);
-  signal Status   : STD_LOGIC_VECTOR (7 downto 0);
+  signal btnR : std_logic:='0';
+  signal btnU : std_logic:='0';
+  signal btnD : std_logic:='0';
+  signal btnL : std_logic:='0';
+  signal btnEnter : std_logic:='0';
+  signal sw : std_logic_vector(15 downto 0):="0000000000000000";
 
 
 begin  -- behaviour
@@ -54,8 +62,12 @@ begin  -- behaviour
     port map (
       reset    => reset,
       clk      => clk,
-      w_e_SREG => w_e_SREG,
-      Status   => Status);
+      btnR     => btnR,
+      btnU     => btnU,
+      btnD     => btnD,
+      btnL     => btnL,
+      btnEnter => btnEnter,
+      sw       => sw);
 
   -- clock generation
   clk <= not clk after 10 ns;

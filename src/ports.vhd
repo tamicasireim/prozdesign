@@ -15,9 +15,9 @@ entity ports is
     --   component act as a 8 bits memory.
     --   data_out shall be linked to hardware port (ex : led)
     read_only : std_logic;
-    id_port : std_logic_vector(3 downto 0)
+    id_port   : std_logic_vector(3 downto 0)
     );
-  port(clk        : in  std_logic;
+  port(clk   : in std_logic;
        reset : in std_logic;
 
        data_out   : out std_logic_vector (7 downto 0);
@@ -27,20 +27,18 @@ entity ports is
 end ports;
 
 architecture Behavioral of ports is
-  data <= std_logic_vector (7 downto 0) := "00000000";
+  signal data : std_logic_vector (7 downto 0) := "00000000";
 begin
 
   write_process : process(clk, data_in)
   begin
     if read_only = '1' then
-      data <= data_in
-    else if clk'event and clk = '1' then
+      data <= data_in;
+    elsif clk'event and clk = '1' then
       if reset = '1' then
-        data <= "00000000"
-      else
-        if w_e_memory = id_port then
-            data <= data_in;
-        end if;
+        data <= "00000000";
+      elsif w_e_memory = id_port then
+        data <= data_in;
       end if;
     end if;
   end process write_process;
