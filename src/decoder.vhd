@@ -6,7 +6,7 @@
 -- Author     : Burkart Voss  <bvoss@Troubadix>
 -- Company    : 
 -- Created    : 2015-06-23
--- Last update: 2016-12-02
+-- Last update: 2016-12-04
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -54,7 +54,6 @@ entity decoder is
 
     -- Program Counter management
     offset_pc          : out std_logic_vector(pc_size - 1 downto 0);  -- the offset of the pc
-    addr_pc            : out std_logic_vector(pc_size - 1 downto 0);
     load_addr_from_ext : out std_logic;
     pc_addr_selector   : out std_logic
 
@@ -87,7 +86,6 @@ begin  -- Behavioral
     regfile_datain_selector <= regfile_data_in_alu;
     alu_sel_immediate       <= '0';
     offset_pc               <= "000000000000";
-    addr_pc               <= "000000000000";
     w_e_decoder_memory      <= '0';
     stack_enable            <= '0';
     write_pc_addr         <= '0';
@@ -195,7 +193,10 @@ begin  -- Behavioral
             offset_pc <= Instr(11 downto 0);
           -- RCALL
           when "1101"=>
-            null;
+            load_addr_from_ext <= '1';  -- PC will take the value from instruction
+            write_pc_addr <= '1';       -- data memory will save the PC value
+            w_e_decoder_memory <= '1';
+            pc_addr_selector <= s_pc_addr_from_instruction;
           when others =>
             case Instr(15 downto 9) is  -- instructions that are coded on the
               -- first 7 bytes
@@ -242,7 +243,12 @@ begin  -- Behavioral
                 w_e_regfile  <= '1';
                 stack_enable <= '1';
               when others =>
-                null;
+                -- RET
+                if Instr = "1001010100001000" then
+                  load_addr_from_ext <= '1';
+                  write_pc_addr <= '1';
+                  pc_addr_selector <= s_pc_addr_from_memory;
+                end if;
             end case;
         end case;
     end case;

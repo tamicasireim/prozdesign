@@ -29,6 +29,11 @@ package pkg_processor is
   constant regfile_data_in_memory : std_logic_vector(1 downto 0) := "10";
   constant regfile_data_in_instruction : std_logic_vector(1 downto 0) := "11";
 
+  -- constant for pc_addr_selector
+
+  constant s_pc_addr_from_memory : std_logic := '1';
+  constant s_pc_addr_from_instruction : std_logic := '0';
+
   -- SRAM
   constant addr_first_memory : std_logic_vector(15 downto 0) := x"0060";
   constant addr_last_memory : std_logic_vector(15 downto 0) := x"045F";

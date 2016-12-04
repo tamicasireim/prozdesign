@@ -6,7 +6,7 @@
 -- Author     : Marie Simatic  <marie@simatic.org>
 -- Company    : 
 -- Created    : 2016-11-21
--- Last update: 2016-12-04
+-- Last update: 2016-12-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -60,10 +60,14 @@ begin
       else
 
         if write_pc_addr = '1' then
+          -- RCALL
           if w_e_memory = id_memory then
-            null;                       -- RCALL
+            memory_speicher(stack_pointer)     <= pc_addr(7 downto 0);
+            memory_speicher(stack_pointer - 1) <= "0000" & pc_addr(11 downto 8);
+            stack_pointer                      <= stack_pointer - 2;
+          -- RET
           else
-            null;                       -- RET
+            stack_pointer <= stack_pointer + 2;
           end if;
         elsif stack_enable = '1' then
           -- PUSH
@@ -85,15 +89,12 @@ begin
 
   data_out <= memory_speicher(stack_pointer + 1) when stack_enable = '1' and stack_pointer < 1023
               else memory_speicher(to_integer(unsigned(addr)));
-  pc_addr_out <= (others => '0');
 
-
-  -- RCALL : write_pc_addr = '1', pas de sortie
-  -- RET : pas de sortie
-  -- PUSH : stack enable 1, w_e_memory 1
-  -- POP : stack enable
-  -- LD : 
-  -- ST : w_e_memory 1
+  -- PC addr out is the conjuction of 2 cases from the memory
+  pc_addr_out <= memory_speicher(stack_pointer + 1)(3 downto 0)
+                 & memory_speicher(stack_pointer + 2)
+                 when write_pc_addr = '1' and w_e_memory /= id_memory else
+                 (others => '0');
 
 end Behavioral;
 

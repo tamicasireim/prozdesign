@@ -59,6 +59,7 @@ begin
     end if;
   end process count;
 
-  Addr <= PC_reg;
+  Addr <= addr_from_ext when load_addr_from_ext = '1' else 
+          PC_reg;
 
 end Behavioral;
