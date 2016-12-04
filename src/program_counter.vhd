@@ -23,6 +23,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 
+library work;
+use work.pkg_processor.all;
+
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
 --library UNISIM;
@@ -30,16 +33,20 @@ use IEEE.NUMERIC_STD.all;
 
 entity Program_Counter is
   port (
-    reset : in  std_logic;
-    clk   : in  std_logic;
-    offset_pc : in std_logic_vector (11 downto 0);
-    Addr  : out std_logic_vector (8 downto 0));
+    reset     : in  std_logic;
+    clk       : in  std_logic;
+    offset_pc : in  std_logic_vector (pc_size - 1 downto 0);
+
+    addr_from_ext : in std_logic_vector(pc_size - 1 downto 0);
+    load_addr_from_ext : in std_logic;
+
+    Addr      : out std_logic_vector (pc_size - 1 downto 0));
 end Program_Counter;
 
 -- Rudimentaerer Programmzaehler ohne Ruecksetzen und springen...
 
 architecture Behavioral of Program_Counter is
-  signal PC_reg : std_logic_vector(11 downto 0);
+  signal PC_reg : std_logic_vector(pc_size - 1 downto 0);
 begin
   count : process (clk)
   begin  -- process count
@@ -52,6 +59,6 @@ begin
     end if;
   end process count;
 
-  Addr <= PC_reg(8 downto 0);
+  Addr <= PC_reg;
 
 end Behavioral;

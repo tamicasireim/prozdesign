@@ -24,7 +24,6 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.numeric_std.all;
 use work.pkg_processor.all;
 use work.pkg_instrmem.all;
-use work.pkg_memory.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -39,20 +38,21 @@ entity toplevel is
   port (
 
     -- global ports
-    reset : in std_logic;
-    clk   : in std_logic;
+    clk : in std_logic;
 
+    dummy : in std_logic;
 
     -- buttons PIND
+    btnEnter : in std_logic;
     btnR     : in std_logic;
     btnU     : in std_logic;
     btnD     : in std_logic;
     btnL     : in std_logic;
 
     -- PINC & PINB (switchs)
-    sw : in std_logic_vector(15 downto 0);
+    sw  : in  std_logic_vector(15 downto 0);
     -- PORT C & PORT B (led)
-    led      : out std_logic_vector(15 downto 0)
+    led : out std_logic_vector(15 downto 0)
     );
 
 end toplevel;
@@ -62,20 +62,26 @@ architecture Behavioral of toplevel is
   -- Internal signal declarations
   -----------------------------------------------------------------------------
 
+  signal reset : std_logic;
   -- outputs of "Program_Counter_1"
-  signal Addr : std_logic_vector (8 downto 0);
+  signal Addr  : std_logic_vector (pc_size - 1 downto 0);
 
   -- outputs of "prog_mem_1"
   signal Instr : std_logic_vector (15 downto 0);
 
   -- outputs of "decoder_1"
-  signal addr_opa           : std_logic_vector(4 downto 0);
-  signal addr_opb           : std_logic_vector(4 downto 0);
-  signal OPCODE             : std_logic_vector(3 downto 0);
-  signal w_e_regfile        : std_logic;
+  signal addr_opa    : std_logic_vector(4 downto 0);
+  signal addr_opb    : std_logic_vector(4 downto 0);
+  signal OPCODE      : std_logic_vector(3 downto 0);
+  signal w_e_regfile : std_logic;
+
   signal w_e_decoder_memory : std_logic;
+  signal stack_enable       : std_logic;
   signal w_e_SREG_dec       : std_logic_vector(7 downto 0);
-  signal offset_pc          : std_logic_vector(11 downto 0);
+  signal offset_pc          : std_logic_vector(pc_size - 1 downto 0);
+  signal addr_from_dec      : std_logic_vector(pc_size - 1 downto 0);
+  signal load_addr_from_ext : std_logic;
+  signal write_pc_addr      : std_logic;
 
   signal regfile_datain_selector : std_logic_vector(1 downto 0);
   signal alu_sel_immediate       : std_logic;
@@ -96,8 +102,9 @@ architecture Behavioral of toplevel is
   signal memory_output_selector : std_logic_vector(3 downto 0);
 
   -- outputs of data memory and ports
-  signal memory_data_out : std_logic_vector(7 downto 0);
-  signal memory_output   : std_logic_vector(7 downto 0);
+  signal memory_data_out     : std_logic_vector(7 downto 0);
+  signal memory_output       : std_logic_vector(7 downto 0);
+  signal pc_addr_from_memory : std_logic_vector(pc_size - 1 downto 0);
 
   -- auxiliary signals
   signal PM_data        : std_logic_vector(7 downto 0);  -- used for wiring immediate data
@@ -107,11 +114,11 @@ architecture Behavioral of toplevel is
                                                          -- multiplexer
 
   -- input ports
-  signal pind : std_logic_vector(7 downto 0);
+  signal pind        : std_logic_vector(7 downto 0);
   signal output_pind : std_logic_vector(7 downto 0);
-  signal pinc : std_logic_vector(7 downto 0);
+  signal pinc        : std_logic_vector(7 downto 0);
   signal output_pinc : std_logic_vector(7 downto 0);
-  signal pinb : std_logic_vector(7 downto 0);
+  signal pinb        : std_logic_vector(7 downto 0);
   signal output_pinb : std_logic_vector(7 downto 0);
 
   -- output ports
@@ -124,32 +131,42 @@ architecture Behavioral of toplevel is
 
   component Program_Counter
     port (
-      reset     : in  std_logic;
-      clk       : in  std_logic;
-      offset_pc : in  std_logic_vector (11 downto 0);
-      Addr      : out std_logic_vector (8 downto 0));
+      reset              : in  std_logic;
+      clk                : in  std_logic;
+      offset_pc          : in  std_logic_vector (pc_size - 1 downto 0);
+      addr_from_ext      : in  std_logic_vector(pc_size - 1 downto 0);
+      load_addr_from_ext : in  std_logic;
+      Addr               : out std_logic_vector (pc_size - 1 downto 0));
   end component;
 
   component prog_mem
     port (
-      Addr  : in  std_logic_vector (8 downto 0);
+      Addr  : in  std_logic_vector (pc_size - 1 downto 0);
+      dummy : in  std_logic;
       Instr : out std_logic_vector (15 downto 0));
   end component;
 
   component data_memory is
     port (
-      clk        : in  std_logic;
-      reset      : in  std_logic;
-      w_e_memory : in  std_logic_vector(3 downto 0);
-      data_in    : in  std_logic_vector(7 downto 0);
-      addr       : in  std_logic_vector (9 downto 0);
-      data_out   : out std_logic_vector (7 downto 0));
+      clk           : in  std_logic;
+      reset         : in  std_logic;
+      data_out      : out std_logic_vector (7 downto 0);
+      w_e_memory    : in  std_logic_vector(3 downto 0);
+      data_in       : in  std_logic_vector(7 downto 0);
+      write_pc_addr : in  std_logic;
+      stack_enable  : in  std_logic;
+      addr          : in  std_logic_vector (9 downto 0);
+      pc_addr       : in  std_logic_vector(pc_size - 1 downto 0);
+      pc_addr_out   : out std_logic_vector(pc_size - 1 downto 0));
   end component data_memory;
 
   component decoder_memory is
     port (
+      clk                    : in  std_logic;
+      reset                  : in  std_logic;
       index_z                : in  std_logic_vector(15 downto 0);
       w_e_decoder_memory     : in  std_logic;
+      stack_enable           : in  std_logic;
       w_e_memory             : out std_logic_vector(3 downto 0);
       memory_output_selector : out std_logic_vector (3 downto 0);
       addr_memory            : out std_logic_vector(9 downto 0));
@@ -171,15 +188,20 @@ architecture Behavioral of toplevel is
     port (
       Instr                   : in  std_logic_vector(15 downto 0);
       sreg                    : in  std_logic_vector(7 downto 0);
+      w_e_SREG                : out std_logic_vector(7 downto 0);
       addr_opa                : out std_logic_vector(4 downto 0);
       addr_opb                : out std_logic_vector(4 downto 0);
-      OPCODE                  : out std_logic_vector(3 downto 0);
-      w_e_decoder_memory      : out std_logic;
       w_e_regfile             : out std_logic;
-      w_e_SREG                : out std_logic_vector(7 downto 0);
-      offset_pc               : out std_logic_vector(11 downto 0);
       regfile_datain_selector : out std_logic_vector(1 downto 0);
-      alu_sel_immediate       : out std_logic);
+      OPCODE                  : out std_logic_vector(3 downto 0);
+      alu_sel_immediate       : out std_logic;
+      w_e_decoder_memory      : out std_logic;
+      stack_enable            : out std_logic;
+      write_pc_addr           : out std_logic;
+      offset_pc               : out std_logic_vector(pc_size - 1 downto 0);
+      addr_pc                 : out std_logic_vector(pc_size - 1 downto 0);
+      load_addr_from_ext      : out std_logic;
+      pc_addr_selector        : out std_logic);
   end component decoder;
 
   component Reg_File is
@@ -213,15 +235,18 @@ begin
   -- instance "Program_Counter_1"
   Program_Counter_1 : Program_Counter
     port map (
-      reset     => reset,
-      offset_pc => offset_pc,
-      clk       => clk,
-      Addr      => Addr);
+      clk                => clk,
+      reset              => reset,
+      offset_pc          => offset_pc,
+      addr_from_ext      => pc_addr_from_memory,
+      load_addr_from_ext => load_addr_from_ext,
+      Addr               => Addr);
 
   -- instance "prog_mem_1"
   prog_mem_1 : prog_mem
     port map (
       Addr  => Addr,
+      dummy => dummy,
       Instr => Instr);
 
   -- instance "decoder_1"
@@ -234,6 +259,10 @@ begin
       OPCODE                  => OPCODE,
       offset_pc               => offset_pc,
       w_e_regfile             => w_e_regfile,
+      stack_enable            => stack_enable,
+      write_pc_addr           => write_pc_addr,
+      addr_pc                 => addr_from_dec,
+      load_addr_from_ext      => load_addr_from_ext,
       w_e_decoder_memory      => w_e_decoder_memory,
       w_e_SREG                => w_e_SREG_dec,
       alu_sel_immediate       => alu_sel_immediate,
@@ -265,21 +294,28 @@ begin
   -- instance "decoder_memory_1"
   decoder_memory_1 : decoder_memory
     port map (
+      clk                    => clk,
+      reset                  => reset,
       index_z                => index_z,
       w_e_decoder_memory     => w_e_decoder_memory,
+      stack_enable           => stack_enable,
       memory_output_selector => memory_output_selector,
       w_e_memory             => w_e_memory,
       addr_memory            => addr_memory);
 
   -- instance "data_memory_1"
   data_memory_1 : data_memory
-    port map (
-      clk        => clk,
-      reset      => reset,
-      w_e_memory => w_e_memory,
-      data_in    => data_opa,
-      addr       => addr_memory,
-      data_out   => memory_data_out);
+    port map(
+      clk           => clk,
+      reset         => reset,
+      data_out      => memory_data_out,
+      write_pc_addr => write_pc_addr,
+      stack_enable  => stack_enable,
+      w_e_memory    => w_e_memory,
+      data_in       => data_opa,
+      addr          => addr_memory,
+      pc_addr       => Addr,
+      pc_addr_out   => pc_addr_from_memory);
 
   -- instances of port
   inst_pinc : ports
@@ -339,15 +375,15 @@ begin
       data_in    => data_opa);
 
   -- variable from instruction
-  PM_Data <= Instr(11 downto 8)&Instr(3 downto 0);
-
+  PM_Data          <= Instr(11 downto 8)&Instr(3 downto 0);
+  reset            <= btnR and btnU and btnD and btnL and btnEnter;
   -- port in definitions
-  pind <= "000" & btnR & btnU & btnD & btnL & "0";
-  pinc <= sw(15 downto 8);
-  pinb <= sw(7 downto 0);
+  pind             <= "000" & btnR & btnU & btnD & btnL & btnEnter;
+  pinc             <= sw(15 downto 8);
+  pinb             <= sw(7 downto 0);
   -- port out definitions
   led(15 downto 8) <= portc;
-  led(7 downto 0) <= portb;
+  led(7 downto 0)  <= portb;
 
 
   -- ALU data OPB multiplexor
@@ -374,8 +410,8 @@ begin
 
   -- memory output multiplexor
   memory_output_mux : process (memory_output_selector, memory_data_out,
-                                portc, portb,
-                                output_pind, output_pinc, output_pinb)
+                               portc, portb,
+                               output_pind, output_pinc, output_pinb)
   begin
     case memory_output_selector is
       when id_memory =>

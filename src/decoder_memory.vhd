@@ -3,56 +3,66 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.pkg_memory.all;
+use work.pkg_processor.all;
 
 entity decoder_memory is
-  
+
   port (
-    index_z : in std_logic_vector(15 downto 0);
-    w_e_decoder_memory : in std_logic;
+    clk                    : in  std_logic;
+    reset                  : in  std_logic;
+    index_z                : in  std_logic_vector(15 downto 0);
+    w_e_decoder_memory     : in  std_logic;
+    stack_enable           : in  std_logic;
     memory_output_selector : out std_logic_vector (3 downto 0);
-    w_e_memory : out std_logic_vector(3 downto 0);
-    addr_memory : out std_logic_vector(9 downto 0));
+    w_e_memory             : out std_logic_vector(3 downto 0);
+    addr_memory            : out std_logic_vector(9 downto 0));
 
 end entity decoder_memory;
 
 architecture Behavioral of decoder_memory is
 begin
-  dec_memory_mux : process (index_z, w_e_decoder_memory)
-    variable id_port : std_logic_vector(3 downto 0);
-    
-  begin
-    w_e_memory <= "0000";
-    addr_memory <= "0000000000";
-    id_port := "0000";
 
-    case index_z is
-      when addr_pind =>
-        id_port := id_pind;
-      when addr_pinc =>
-        id_port := id_pinc;
-      when addr_pinb =>
-        id_port := id_pinb;
-      when addr_portc =>
-        id_port := id_portc;
-      when addr_portb =>
-        id_port := id_portb;
-      when others =>
-        if unsigned(index_z) >= unsigned(addr_first_memory)
+  dec_memory_mux : process (index_z, w_e_decoder_memory, stack_enable)
+    variable id_port : std_logic_vector(3 downto 0);
+  begin
+    -- todo reset also reset stack pointer
+    w_e_memory  <= "0000";
+    addr_memory <= "0000000000";
+    id_port     := "0000";
+
+    if stack_enable = '1' then
+      id_port := id_memory;
+    else
+
+      case index_z is
+        when addr_pind =>
+          id_port := id_pind;
+        when addr_pinc =>
+          id_port := id_pinc;
+        when addr_pinb =>
+          id_port := id_pinb;
+        when addr_portc =>
+          id_port := id_portc;
+        when addr_portb =>
+          id_port := id_portb;
+        when others =>
+          if unsigned(index_z) >= unsigned(addr_first_memory)
             and unsigned(index_z) <= unsigned(addr_last_memory) then
 
             addr_memory <= std_logic_vector(resize(unsigned(index_z) - unsigned(addr_first_memory),
-                                                    addr_memory'length));
+                                                   addr_memory'length));
 
             id_port := id_memory;
-        end if;
-    end case;
+          end if;
+      end case;
+    end if;
 
     memory_output_selector <= id_port;
+
     if w_e_decoder_memory = '1' then
       w_e_memory <= id_port;
     end if;
 
   end process dec_memory_mux;
 end Behavioral;
-  
+

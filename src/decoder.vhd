@@ -6,7 +6,7 @@
 -- Author     : Burkart Voss  <bvoss@Troubadix>
 -- Company    : 
 -- Created    : 2015-06-23
--- Last update: 2016-11-28
+-- Last update: 2016-12-02
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -29,19 +29,34 @@ use work.pkg_processor.all;
 
 entity decoder is
   port (
-    Instr              : in  std_logic_vector(15 downto 0);  -- Eingang vom Programmspeicher
-    sreg               : in  std_logic_vector(7 downto 0);  -- sreg
-    addr_opa           : out std_logic_vector(4 downto 0);  -- Adresse von 1. Operand
-    addr_opb           : out std_logic_vector(4 downto 0);  -- Adresse von 2. Operand
-    OPCODE             : out std_logic_vector(3 downto 0);  -- Opcode für ALU
-    w_e_decoder_memory : out std_logic;
-    w_e_regfile        : out std_logic;  -- write enable for Registerfile
-    w_e_SREG           : out std_logic_vector(7 downto 0);  -- einzeln Write_enables für SREG - Bits
-    offset_pc          : out std_logic_vector(11 downto 0);  -- the offset of the pc
+    Instr : in std_logic_vector(15 downto 0);  -- Eingang vom Programmspeicher
 
-    -- hier kommen noch die ganzen Steuersignale der Multiplexer...
+    -- SREG management
+    sreg     : in  std_logic_vector(7 downto 0);  -- sreg
+    w_e_SREG : out std_logic_vector(7 downto 0);  -- einzeln Write_enables für SREG - Bits
+
+    -- regfile outputs
+    addr_opa                : out std_logic_vector(4 downto 0);  -- Adresse von 1. Operand
+    addr_opb                : out std_logic_vector(4 downto 0);  -- Adresse von 2. Operand
+    w_e_regfile             : out std_logic;  -- write enable for Registerfile
     regfile_datain_selector : out std_logic_vector(1 downto 0);  -- Selecteingang für Mux vor RF
-    alu_sel_immediate       : out std_logic  -- selecteingang für mux vor ALU
+
+    -- ALU
+    OPCODE            : out std_logic_vector(3 downto 0);  -- Opcode für ALU
+    alu_sel_immediate : out std_logic;  -- selecteingang für mux vor ALU
+
+    -- memory outputs
+    w_e_decoder_memory : out std_logic;
+    stack_enable       : out std_logic;  -- When set to '1', memory decoder will
+                                       -- use the stack (push / pop)
+    write_pc_addr      : out std_logic;  -- when set to '1', memory will write the pc
+                                         -- addr into stack.
+
+    -- Program Counter management
+    offset_pc          : out std_logic_vector(pc_size - 1 downto 0);  -- the offset of the pc
+    addr_pc            : out std_logic_vector(pc_size - 1 downto 0);
+    load_addr_from_ext : out std_logic;
+    pc_addr_selector   : out std_logic
 
     );
 end decoder;
@@ -72,7 +87,12 @@ begin  -- Behavioral
     regfile_datain_selector <= regfile_data_in_alu;
     alu_sel_immediate       <= '0';
     offset_pc               <= "000000000000";
+    addr_pc               <= "000000000000";
     w_e_decoder_memory      <= '0';
+    stack_enable            <= '0';
+    write_pc_addr         <= '0';
+    load_addr_from_ext   <= '0';
+    pc_addr_selector <= '0';
 
     index_branches := to_integer(unsigned(Instr(2 downto 0)));
 
@@ -121,9 +141,9 @@ begin  -- Behavioral
         w_e_SREG    <= "00011110";
       -- MOV
       when "001011" =>
-        addr_opa    <= Instr(8 downto 4);
-        addr_opb    <= Instr(9) & Instr (3 downto 0);
-        w_e_regfile <= '1';
+        addr_opa                <= Instr(8 downto 4);
+        addr_opb                <= Instr(9) & Instr (3 downto 0);
+        w_e_regfile             <= '1';
         regfile_datain_selector <= regfile_data_in_datab;
       -- BRBS
       when "111100" =>
@@ -210,6 +230,17 @@ begin  -- Behavioral
               when "1000001" =>
                 addr_opa           <= Instr(8 downto 4);
                 w_e_decoder_memory <= '1';
+              -- PUSH RD
+              when "1001001" =>
+                addr_opa           <= Instr(8 downto 4);
+                w_e_decoder_memory <= '1';
+                stack_enable       <= '1';
+              -- POP RD
+              when "1001000" =>
+                addr_opa     <= Instr(8 downto 4);
+                regfile_datain_selector <= regfile_data_in_memory;
+                w_e_regfile  <= '1';
+                stack_enable <= '1';
               when others =>
                 null;
             end case;

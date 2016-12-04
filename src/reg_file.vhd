@@ -25,15 +25,17 @@ use IEEE.NUMERIC_STD.all;
 
 
 entity Reg_File is
-  port (clk         : in  std_logic;
-        reset : in std_logic;
-        addr_opa    : in  std_logic_vector (4 downto 0);
-        addr_opb    : in  std_logic_vector (4 downto 0);
-        w_e_regfile : in  std_logic;
-        data_opa    : out std_logic_vector (7 downto 0);
-        data_opb    : out std_logic_vector (7 downto 0);
-        index_z     : out std_logic_vector (15 downto 0);
-        data_in     : in  std_logic_vector (7 downto 0));
+  port (clk         : in std_logic;
+        reset       : in std_logic;
+        addr_opa    : in std_logic_vector (4 downto 0);
+        addr_opb    : in std_logic_vector (4 downto 0);
+        data_in     : in std_logic_vector (7 downto 0);
+        w_e_regfile : in std_logic;
+
+        data_opa : out std_logic_vector (7 downto 0);
+        data_opb : out std_logic_vector (7 downto 0);
+        index_z  : out std_logic_vector (15 downto 0)
+        );
 end Reg_File;
 
 -- ACHTUNG!!! So einfach wird das mit dem Registerfile am Ende nicht.
@@ -43,7 +45,6 @@ end Reg_File;
 architecture Behavioral of Reg_File is
   type regs is array(31 downto 0) of std_logic_vector(7 downto 0);
   signal register_speicher : regs;
-  signal sreg_speicher     : std_logic_vector(7 downto 0);
 begin
 
   -- purpose: einfacher Schreibprozess für rudimentaeres Registerfile
@@ -57,7 +58,7 @@ begin
         register_speicher <= (others => "00000000");
       else
         if w_e_regfile = '1' then
-            register_speicher(to_integer(unsigned(addr_opa))) <= data_in;
+          register_speicher(to_integer(unsigned(addr_opa))) <= data_in;
         end if;
       end if;
     end if;

@@ -23,6 +23,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 library work;
+use work.pkg_processor.all;
 use work.pkg_instrmem.all;
 
 -- following library declaration if using
@@ -35,13 +36,16 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity prog_mem is
-    Port ( Addr : in STD_LOGIC_VECTOR (8 downto 0);
+    Port ( Addr : in STD_LOGIC_VECTOR (pc_size - 1 downto 0);
+           dummy : in std_logic;
            Instr : out STD_LOGIC_VECTOR (15 downto 0));
 end prog_mem;
 
 architecture Behavioral of prog_mem is
 
 begin
-  Instr <= PROGMEM(to_integer(unsigned(Addr)));
+  Instr <= PROGMEM(to_integer(unsigned(Addr))) when dummy = '0'
+           else "0000000000000000";
+  
 
 end Behavioral;

@@ -2,6 +2,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 package pkg_processor is
+  -- constants for PC
+  constant pc_size : integer := 12;
+  
+  -- constants for ALU operations
 
   constant op_add : std_logic_vector(3 downto 0) := "0000";  -- Addition
   constant op_NOP : std_logic_vector(3 downto 0) := "0000";  -- NoOperation (als Addition implementiert, die Ergebnisse
@@ -24,4 +28,25 @@ package pkg_processor is
   constant regfile_data_in_datab : std_logic_vector(1 downto 0) := "01";
   constant regfile_data_in_memory : std_logic_vector(1 downto 0) := "10";
   constant regfile_data_in_instruction : std_logic_vector(1 downto 0) := "11";
+
+  -- SRAM
+  constant addr_first_memory : std_logic_vector(15 downto 0) := x"0060";
+  constant addr_last_memory : std_logic_vector(15 downto 0) := x"045F";
+  constant id_memory : std_logic_vector(3 downto 0) := "0001"; 
+
+  -- pind
+  constant addr_pind : std_logic_vector(15 downto 0) := x"0030";
+  constant id_pind : std_logic_vector(3 downto 0) := "0010"; 
+  -- pinc
+  constant addr_pinc : std_logic_vector(15 downto 0) := x"0033";
+  constant id_pinc : std_logic_vector(3 downto 0) := "0011"; 
+  -- pinb
+  constant addr_pinb : std_logic_vector(15 downto 0) := x"0036";
+  constant id_pinb : std_logic_vector(3 downto 0) := "0100"; 
+  -- portc
+  constant addr_portc : std_logic_vector(15 downto 0) := x"0035";
+  constant id_portc : std_logic_vector(3 downto 0) := "0101"; 
+  -- pind
+  constant addr_portb : std_logic_vector(15 downto 0) := x"0038";
+  constant id_portb : std_logic_vector(3 downto 0) := "0110"; 
 end pkg_processor;

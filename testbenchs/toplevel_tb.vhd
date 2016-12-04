@@ -6,7 +6,7 @@
 -- Author     : Burkart Voss  <bvoss@Troubadix>
 -- Company    : 
 -- Created    : 2015-06-23
--- Last update: 2016-11-28
+-- Last update: 2016-12-01
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ end toplevel_tb;
 architecture behaviour of toplevel_tb is
   component toplevel is
     port (
-      reset    : in  std_logic;
       clk      : in  std_logic;
+      dummy : in std_logic;
       btnR     : in  std_logic;
       btnU     : in  std_logic;
       btnD     : in  std_logic;
@@ -45,8 +45,8 @@ architecture behaviour of toplevel_tb is
   end component toplevel;
 
   -- component ports
-  signal reset    : STD_LOGIC;
   signal clk      : STD_LOGIC:='0';
+  signal dummy : STD_LOGIC:='0';
   signal btnR : std_logic:='0';
   signal btnU : std_logic:='0';
   signal btnD : std_logic:='0';
@@ -60,8 +60,8 @@ begin  -- behaviour
   -- component instantiation
   DUT: toplevel
     port map (
-      reset    => reset,
       clk      => clk,
+      dummy => dummy,
       btnR     => btnR,
       btnU     => btnU,
       btnD     => btnD,
@@ -77,9 +77,17 @@ begin  -- behaviour
   begin
     -- insert signal assignments here
     wait for 20ns;
-    reset <= '1';
-    wait for 101ns;
-    reset <= '0';
+    btnR <= '1';
+    btnU <= '1';
+    btnD <= '1';
+    btnL <= '1';
+    btnEnter <= '1';
+    wait for 20ns;
+    btnR <= '0';
+    btnU <= '0';
+    btnD <= '0';
+    btnL <= '0';
+    btnEnter <= '0';
     wait;
 
   end process WaveGen_Proc;
