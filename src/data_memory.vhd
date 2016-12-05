@@ -52,6 +52,7 @@ architecture Behavioral of data_memory is
 
 begin
   writing_process : process(clk)
+    variable incremented_pc_addr : std_logic_vector(11 downto 0) := (others => '0');
   begin
     if clk'event and clk = '1' then
       if reset = '1' then
@@ -60,10 +61,11 @@ begin
       else
 
         if write_pc_addr = '1' then
+          incremented_pc_addr := unsigned(pc_addr) + 1;
           -- RCALL
           if w_e_memory = id_memory then
-            memory_speicher(stack_pointer)     <= pc_addr(7 downto 0);
-            memory_speicher(stack_pointer - 1) <= "0000" & pc_addr(11 downto 8);
+            memory_speicher(stack_pointer)     <= incremented_pc_addr(7 downto 0);
+            memory_speicher(stack_pointer - 1) <= "0000" & incremented_pc_addr(11 downto 8);
             stack_pointer                      <= stack_pointer - 2;
           -- RET
           else

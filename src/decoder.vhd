@@ -6,7 +6,7 @@
 -- Author     : Burkart Voss  <bvoss@Troubadix>
 -- Company    : 
 -- Created    : 2015-06-23
--- Last update: 2016-12-04
+-- Last update: 2016-12-05
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ begin  -- Behavioral
     w_e_SREG                <= "00000000";
     regfile_datain_selector <= regfile_data_in_alu;
     alu_sel_immediate       <= '0';
-    offset_pc               <= "000000000000";
+    offset_pc               <= (others => '0');
     w_e_decoder_memory      <= '0';
     stack_enable            <= '0';
     write_pc_addr         <= '0';
@@ -193,10 +193,9 @@ begin  -- Behavioral
             offset_pc <= Instr(11 downto 0);
           -- RCALL
           when "1101"=>
-            load_addr_from_ext <= '1';  -- PC will take the value from instruction
             write_pc_addr <= '1';       -- data memory will save the PC value
             w_e_decoder_memory <= '1';
-            pc_addr_selector <= s_pc_addr_from_instruction;
+            offset_pc <= Instr(11 downto 0);
           when others =>
             case Instr(15 downto 9) is  -- instructions that are coded on the
               -- first 7 bytes

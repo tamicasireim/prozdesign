@@ -1,11 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
 -- ---------------------------------------------------------------------------------
--- Memory initialisation package
+-- Memory initialisation package from input file : test_rcall.hex
 -- ---------------------------------------------------------------------------------
 package pkg_instrmem is
 
-	type t_instrMem   is array(0 to 512-1) of std_logic_vector(15 downto 0);
+	type t_instrMem   is array(0 to 4096-1) of std_logic_vector(15 downto 0);
 	constant PROGMEM : t_instrMem := (
 		"0000000000000000",
 		"0000000000000000",
