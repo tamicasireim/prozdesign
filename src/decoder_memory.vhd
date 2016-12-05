@@ -8,8 +8,6 @@ use work.pkg_processor.all;
 entity decoder_memory is
 
   port (
-    clk                    : in  std_logic;
-    reset                  : in  std_logic;
     index_z                : in  std_logic_vector(15 downto 0);
     w_e_decoder_memory     : in  std_logic;
     stack_enable           : in  std_logic;

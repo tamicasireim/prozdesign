@@ -164,8 +164,6 @@ architecture Behavioral of toplevel is
 
   component decoder_memory is
     port (
-      clk                    : in  std_logic;
-      reset                  : in  std_logic;
       index_z                : in  std_logic_vector(15 downto 0);
       w_e_decoder_memory     : in  std_logic;
       stack_enable           : in  std_logic;
@@ -295,8 +293,6 @@ begin
   -- instance "decoder_memory_1"
   decoder_memory_1 : decoder_memory
     port map (
-      clk                    => clk,
-      reset                  => reset,
       index_z                => index_z,
       w_e_decoder_memory     => w_e_decoder_memory,
       stack_enable           => stack_enable,
