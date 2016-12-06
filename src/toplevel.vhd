@@ -237,7 +237,7 @@ begin
       clk                => clk,
       reset              => reset,
       offset_pc          => offset_pc,
-      addr_from_ext      => input_pc_addr,
+      addr_from_ext      => pc_addr_from_memory,
       load_addr_from_ext => load_addr_from_ext,
       Addr               => Addr);
 

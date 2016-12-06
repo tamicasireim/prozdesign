@@ -194,6 +194,7 @@ begin  -- Behavioral
           -- RCALL
           when "1101"=>
             write_pc_addr <= '1';       -- data memory will save the PC value
+            stack_enable <= '1';
             w_e_decoder_memory <= '1';
             offset_pc <= Instr(11 downto 0);
           when others =>
@@ -219,6 +220,12 @@ begin  -- Behavioral
                     w_e_regfile <= '1';
                     w_e_SREG    <= "00011111";
                   when others =>
+                    -- RET
+                    if Instr = "1001010100001000" then 
+                      load_addr_from_ext <= '1';
+                      write_pc_addr <= '1';
+                      pc_addr_selector <= s_pc_addr_from_memory;
+                    end if;
                     null;               -- Ici, com asr 
                 end case;
               -- LD Z
@@ -242,12 +249,7 @@ begin  -- Behavioral
                 w_e_regfile  <= '1';
                 stack_enable <= '1';
               when others =>
-                -- RET
-                if Instr = "1001010100001000" then
-                  load_addr_from_ext <= '1';
-                  write_pc_addr <= '1';
-                  pc_addr_selector <= s_pc_addr_from_memory;
-                end if;
+                null;
             end case;
         end case;
     end case;

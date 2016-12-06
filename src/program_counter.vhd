@@ -53,13 +53,15 @@ begin
     if clk'event and clk = '1' then     -- rising clock edge
       if reset = '1' then               -- synchronous reset (active high)
         PC_reg <= "000000000000";
+      elsif load_addr_from_ext = '1' then
+        PC_reg <= addr_from_ext;
       else
         PC_reg <= std_logic_vector(unsigned(PC_reg) + unsigned(offset_pc) + 1);
       end if;
     end if;
   end process count;
 
-  Addr <= addr_from_ext when load_addr_from_ext = '1' else 
+  Addr <= -- addr_from_ext when load_addr_from_ext = '1' else 
           PC_reg;
 
 end Behavioral;

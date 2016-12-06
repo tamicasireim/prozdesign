@@ -9,6 +9,7 @@
 	push r16
 	pop r17
 	pop r18
+        rjmp end
 
 
 fonction:	inc r16
@@ -16,5 +17,7 @@ fonction:	inc r16
 		inc r16
 		pop r16
 		ret
+
+end:    NOP
 	
 	
