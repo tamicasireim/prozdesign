@@ -79,12 +79,10 @@ architecture Behavioral of toplevel is
   signal stack_enable       : std_logic;
   signal w_e_SREG_dec       : std_logic_vector(7 downto 0);
   signal offset_pc          : std_logic_vector(pc_size - 1 downto 0);
-  signal load_addr_from_ext : std_logic;
   signal write_pc_addr      : std_logic;
 
   signal regfile_datain_selector : std_logic_vector(1 downto 0);
   signal alu_sel_immediate       : std_logic;
-  signal pc_addr_selector : std_logic;
 
   -- outputs of Regfile
   signal data_opa : std_logic_vector (7 downto 0);
@@ -137,7 +135,6 @@ architecture Behavioral of toplevel is
       clk                : in  std_logic;
       offset_pc          : in  std_logic_vector (pc_size - 1 downto 0);
       addr_from_ext      : in  std_logic_vector(pc_size - 1 downto 0);
-      load_addr_from_ext : in  std_logic;
       Addr               : out std_logic_vector (pc_size - 1 downto 0));
   end component;
 
@@ -198,9 +195,7 @@ architecture Behavioral of toplevel is
       w_e_decoder_memory      : out std_logic;
       stack_enable            : out std_logic;
       write_pc_addr           : out std_logic;
-      offset_pc               : out std_logic_vector(pc_size - 1 downto 0);
-      load_addr_from_ext      : out std_logic;
-      pc_addr_selector        : out std_logic);
+      offset_pc               : out std_logic_vector(pc_size - 1 downto 0));
   end component decoder;
 
   component Reg_File is
@@ -237,8 +232,7 @@ begin
       clk                => clk,
       reset              => reset,
       offset_pc          => offset_pc,
-      addr_from_ext      => input_pc_addr,
-      load_addr_from_ext => load_addr_from_ext,
+      addr_from_ext      => pc_addr_from_memory,
       Addr               => Addr);
 
   -- instance "prog_mem_1"
@@ -260,10 +254,8 @@ begin
       w_e_regfile             => w_e_regfile,
       stack_enable            => stack_enable,
       write_pc_addr           => write_pc_addr,
-      load_addr_from_ext      => load_addr_from_ext,
       w_e_decoder_memory      => w_e_decoder_memory,
       w_e_SREG                => w_e_SREG_dec,
-      pc_addr_selector        => pc_addr_selector,
       alu_sel_immediate       => alu_sel_immediate,
       regfile_datain_selector => regfile_datain_selector);
 
@@ -384,9 +376,6 @@ begin
   led(7 downto 0)  <= portb;
 
 
-  -- program counter addr multiplexor
-  input_pc_addr <= addr_from_instruction when pc_addr_selector = s_pc_addr_from_instruction else
-                   pc_addr_from_memory;
   -- ALU data OPB multiplexor
   input_alu_opb <= data_opb when alu_sel_immediate = '0'
                    else PM_Data;

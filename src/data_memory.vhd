@@ -6,7 +6,7 @@
 -- Author     : Marie Simatic  <marie@simatic.org>
 -- Company    : 
 -- Created    : 2016-11-21
--- Last update: 2016-12-05
+-- Last update: 2016-12-07
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ end data_memory;
 architecture Behavioral of data_memory is
   type sram is array(1023 downto 0) of std_logic_vector(7 downto 0);
   signal memory_speicher : sram;
-  signal stack_pointer   : integer := 1023;
+  signal stack_pointer   : integer range 0 to 1023 := 1023;
 
 begin
   writing_process : process(clk)
@@ -61,7 +61,7 @@ begin
       else
 
         if write_pc_addr = '1' then
-          incremented_pc_addr := unsigned(pc_addr) + 1;
+          incremented_pc_addr := std_logic_vector(unsigned(pc_addr) + 1);
           -- RCALL
           if w_e_memory = id_memory then
             memory_speicher(stack_pointer)     <= incremented_pc_addr(7 downto 0);
@@ -89,14 +89,16 @@ begin
     end if;
   end process writing_process;
 
-  data_out <= memory_speicher(stack_pointer + 1) when stack_enable = '1' and stack_pointer < 1023
+  -- data out multiplexor, depending on wether or not to use the stack
+  data_out <= memory_speicher(stack_pointer + 1) when (stack_enable = '1' and stack_pointer<1023)
               else memory_speicher(to_integer(unsigned(addr)));
 
   -- PC addr out is the conjuction of 2 cases from the memory
-  pc_addr_out <= memory_speicher(stack_pointer + 1)(3 downto 0)
-                 & memory_speicher(stack_pointer + 2)
-                 when write_pc_addr = '1' and w_e_memory /= id_memory else
-                 (others => '0');
+  pc_addr_out <= (others => '0') when (write_pc_addr = '0' or w_e_memory = id_memory
+                                       or stack_pointer>1021) else
+                 std_logic_vector(resize(unsigned(memory_speicher(stack_pointer + 1))
+                 & unsigned(memory_speicher(stack_pointer + 2)), pc_addr'length));
+
 
 end Behavioral;
 

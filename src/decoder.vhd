@@ -6,7 +6,7 @@
 -- Author     : Burkart Voss  <bvoss@Troubadix>
 -- Company    : 
 -- Created    : 2015-06-23
--- Last update: 2016-12-05
+-- Last update: 2016-12-07
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -53,11 +53,7 @@ entity decoder is
                                          -- addr into stack.
 
     -- Program Counter management
-    offset_pc          : out std_logic_vector(pc_size - 1 downto 0);  -- the offset of the pc
-    load_addr_from_ext : out std_logic;
-    pc_addr_selector   : out std_logic
-
-    );
+    offset_pc          : out std_logic_vector(pc_size - 1 downto 0));  -- the offset of the pc
 end decoder;
 
 architecture Behavioral of decoder is
@@ -89,8 +85,6 @@ begin  -- Behavioral
     w_e_decoder_memory      <= '0';
     stack_enable            <= '0';
     write_pc_addr         <= '0';
-    load_addr_from_ext   <= '0';
-    pc_addr_selector <= '0';
 
     index_branches := to_integer(unsigned(Instr(2 downto 0)));
 
@@ -194,6 +188,7 @@ begin  -- Behavioral
           -- RCALL
           when "1101"=>
             write_pc_addr <= '1';       -- data memory will save the PC value
+            stack_enable <= '1';
             w_e_decoder_memory <= '1';
             offset_pc <= Instr(11 downto 0);
           when others =>
@@ -219,6 +214,10 @@ begin  -- Behavioral
                     w_e_regfile <= '1';
                     w_e_SREG    <= "00011111";
                   when others =>
+                    -- RET
+                    if Instr = "1001010100001000" then 
+                      write_pc_addr <= '1';
+                    end if;
                     null;               -- Ici, com asr 
                 end case;
               -- LD Z
@@ -242,12 +241,7 @@ begin  -- Behavioral
                 w_e_regfile  <= '1';
                 stack_enable <= '1';
               when others =>
-                -- RET
-                if Instr = "1001010100001000" then
-                  load_addr_from_ext <= '1';
-                  write_pc_addr <= '1';
-                  pc_addr_selector <= s_pc_addr_from_memory;
-                end if;
+                null;
             end case;
         end case;
     end case;
