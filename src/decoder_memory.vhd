@@ -43,6 +43,14 @@ begin
           id_port := id_portc;
         when addr_portb =>
           id_port := id_portb;
+        when addr_seg0 =>
+          id_port := id_seg0;
+        when addr_seg1 =>
+          id_port := id_seg1;
+        when addr_seg2 =>
+          id_port := id_seg2;
+        when addr_seg3 =>
+          id_port := id_seg3;
         when others =>
           if unsigned(index_z) >= unsigned(addr_first_memory)
             and unsigned(index_z) <= unsigned(addr_last_memory) then

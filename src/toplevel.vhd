@@ -52,7 +52,10 @@ entity toplevel is
     -- PINC & PINB (switchs)
     sw  : in  std_logic_vector(15 downto 0);
     -- PORT C & PORT B (led)
-    led : out std_logic_vector(15 downto 0)
+    led : out std_logic_vector(15 downto 0);
+    -- seven segment display
+    seg : out std_logic_vector(7 downto 0);
+    seg_enable : out std_logic_vector(3 downto 0)
     );
 
 end toplevel;
@@ -360,6 +363,61 @@ begin
       clk        => clk,
       reset      => reset,
       data_out   => portb,
+      w_e_memory => w_e_memory,
+      data_in    => data_opa);
+  
+  inst_seg0 : ports
+    generic map (
+      read_only => '0',
+      id_port   => id_seg0)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => seg,
+      w_e_memory => w_e_memory,
+      data_in    => data_opa);
+
+  inst_seg1 : ports
+    generic map (
+      read_only => '0',
+      id_port   => id_seg1)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => seg,
+      w_e_memory => w_e_memory,
+      data_in    => data_opa);
+
+  inst_seg2 : ports
+    generic map (
+      read_only => '0',
+      id_port   => id_seg2)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => seg,
+      w_e_memory => w_e_memory,
+      data_in    => data_opa);
+  
+  inst_seg3 : ports
+    generic map (
+      read_only => '0',
+      id_port   => id_seg3)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => seg,
+      w_e_memory => w_e_memory,
+      data_in    => data_opa);
+
+  inst_seg_enable : ports
+    generic map (
+      read_only => '0',
+      id_port   => id_seg_enable)
+    port map (
+      clk        => clk,
+      reset      => reset,
+      data_out   => seg,
       w_e_memory => w_e_memory,
       data_in    => data_opa);
 

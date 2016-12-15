@@ -54,4 +54,18 @@ package pkg_processor is
   -- pind
   constant addr_portb : std_logic_vector(15 downto 0) := x"0038";
   constant id_portb : std_logic_vector(3 downto 0) := "0110"; 
+
+  -- 7 displays ports
+  constant addr_seg0 : std_logic_vector(15 downto 0) := x"0041";
+  constant addr_seg1 : std_logic_vector(15 downto 0) := x"0042";
+  constant addr_seg2 : std_logic_vector(15 downto 0) := x"0043";
+  constant addr_seg3 : std_logic_vector(15 downto 0) := x"0044";
+  constant id_seg0 : std_logic_vector(3 downto 0) := "1000";
+  constant id_seg1 : std_logic_vector(3 downto 0) := "1001";
+  constant id_seg2 : std_logic_vector(3 downto 0) := "1011";
+  constant id_seg3 : std_logic_vector(3 downto 0) := "1010";
+  -- Seg Enable
+  constant addr_seg_enable : std_logic_vector(15 downto 0) := x"0040";
+  constant id_seg_enable : std_logic_vector(3 downto 0) := "1100";
+
 end pkg_processor;
