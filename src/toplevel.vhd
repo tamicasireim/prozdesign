@@ -117,11 +117,8 @@ architecture Behavioral of toplevel is
   signal input_pc_addr : std_logic_vector(pc_size - 1 downto 0);
 
   -- input ports
-  signal pind        : std_logic_vector(7 downto 0);
   signal output_pind : std_logic_vector(7 downto 0);
-  signal pinc        : std_logic_vector(7 downto 0);
   signal output_pinc : std_logic_vector(7 downto 0);
-  signal pinb        : std_logic_vector(7 downto 0);
   signal output_pinb : std_logic_vector(7 downto 0);
 
   -- output ports
@@ -174,7 +171,6 @@ architecture Behavioral of toplevel is
 
   component ports is
     generic (
-      read_only : std_logic;
       id_port   : std_logic_vector(3 downto 0));
     port (
       clk        : in  std_logic;
@@ -310,43 +306,8 @@ begin
       pc_addr_out   => pc_addr_from_memory);
 
   -- instances of port
-  inst_pinc : ports
-    generic map (
-      read_only => '1',
-      id_port   => id_pinc)
-    port map (
-      clk        => clk,
-      reset      => reset,
-      data_out   => output_pinc,
-      w_e_memory => w_e_memory,
-      data_in    => pinc);
-
-  inst_pind : ports
-    generic map (
-      read_only => '1',
-      id_port   => id_pind)
-    port map (
-      clk        => clk,
-      reset      => reset,
-      data_out   => output_pind,
-      w_e_memory => w_e_memory,
-      data_in    => pind);
-
-
-  inst_pinb : ports
-    generic map (
-      read_only => '1',
-      id_port   => id_pinb)
-    port map (
-      clk        => clk,
-      reset      => reset,
-      data_out   => output_pinb,
-      w_e_memory => w_e_memory,
-      data_in    => pinb);
-
   inst_portc : ports
     generic map (
-      read_only => '0',
       id_port   => id_portc)
     port map (
       clk        => clk,
@@ -357,7 +318,6 @@ begin
 
   inst_portb : ports
     generic map (
-      read_only => '0',
       id_port   => id_portb)
     port map (
       clk        => clk,
@@ -368,7 +328,6 @@ begin
   
   inst_seg0 : ports
     generic map (
-      read_only => '0',
       id_port   => id_seg0)
     port map (
       clk        => clk,
@@ -379,7 +338,6 @@ begin
 
   inst_seg1 : ports
     generic map (
-      read_only => '0',
       id_port   => id_seg1)
     port map (
       clk        => clk,
@@ -390,7 +348,6 @@ begin
 
   inst_seg2 : ports
     generic map (
-      read_only => '0',
       id_port   => id_seg2)
     port map (
       clk        => clk,
@@ -401,7 +358,6 @@ begin
   
   inst_seg3 : ports
     generic map (
-      read_only => '0',
       id_port   => id_seg3)
     port map (
       clk        => clk,
@@ -412,7 +368,6 @@ begin
 
   inst_seg_enable : ports
     generic map (
-      read_only => '0',
       id_port   => id_seg_enable)
     port map (
       clk        => clk,
@@ -426,9 +381,9 @@ begin
   addr_from_instruction <= Instr(11 downto 0);
   reset            <= btnR and btnU and btnD and btnL and btnEnter;
   -- port in definitions
-  pind             <= "000" & btnR & btnU & btnD & btnL & btnEnter;
-  pinc             <= sw(15 downto 8);
-  pinb             <= sw(7 downto 0);
+  output_pind             <= "000" & btnR & btnU & btnD & btnL & btnEnter;
+  output_pinc             <= sw(15 downto 8);
+  output_pinb             <= sw(7 downto 0);
   -- port out definitions
   led(15 downto 8) <= portc;
   led(7 downto 0)  <= portb;

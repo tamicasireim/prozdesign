@@ -7,15 +7,9 @@ use work.pkg_processor.all;
 
 entity ports is
   generic(
-    -- read only attribute :
-    -- if set to 0 (port is read only)
-    --   data_in should be linked to hardware port (ex :switch, button)
-    --   data_out is equal to data_in
-    -- else
     --   component act as a 8 bits memory.
     --   data_out shall be linked to hardware port (ex : led)
-    read_only : std_logic;
-    id_port   : std_logic_vector(3 downto 0)
+    id_port : std_logic_vector(3 downto 0)
     );
   port(clk   : in std_logic;
        reset : in std_logic;
@@ -32,9 +26,7 @@ begin
 
   write_process : process(clk, data_in)
   begin
-    if read_only = '1' then
-      data <= data_in;
-    elsif clk'event and clk = '1' then
+    if clk'event and clk = '1' then
       if reset = '1' then
         data <= "00000000";
       elsif w_e_memory = id_port then
