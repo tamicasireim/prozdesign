@@ -43,8 +43,8 @@ end Reg_File;
 
 
 architecture Behavioral of Reg_File is
-  type regs is array(31 downto 0) of std_logic_vector(7 downto 0);
-  signal register_speicher : regs;
+  type regs is array(31 downto 0) of std_logic_vector(7 downto 0) ;
+  signal register_speicher : regs:= (others => (others => '0'));
 begin
 
   -- purpose: einfacher Schreibprozess für rudimentaeres Registerfile
@@ -54,12 +54,8 @@ begin
   registerfile : process (clk)
   begin  -- process registerfile
     if clk'event and clk = '1' then     -- rising clock edge
-      if reset = '1' then
-        register_speicher <= (others => "00000000");
-      else
-        if w_e_regfile = '1' then
-          register_speicher(to_integer(unsigned(addr_opa))) <= data_in;
-        end if;
+      if w_e_regfile = '1' then
+        register_speicher(to_integer(unsigned(addr_opa))) <= data_in;
       end if;
     end if;
   end process registerfile;
@@ -67,6 +63,6 @@ begin
   -- nebenlaeufiges Lesen der Registerspeicher
   data_opa <= register_speicher(to_integer(unsigned(addr_opa)));
   data_opb <= register_speicher(to_integer(unsigned(addr_opb)));
-  index_z  <= register_speicher(31) & register_speicher(30);
+  -- index_z  <= register_speicher(31) & register_speicher(30);
 
 end Behavioral;
